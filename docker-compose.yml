@@ -1,0 +1,43 @@
+# This docker-compose.yml is for local development only and NOT production uses.
+version: "3"
+services:
+  postgres:
+    image: postgres:16.0-bullseye
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+
+  redis:
+    image: redis:7.0.10
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis-data:/var/lib/redis/data
+
+  web:
+    image: shorten_url:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - "UID=${UID:-1000}"
+        - "GID=${GID:-1000}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - postgres
+    env_file:
+      - ".env"
+    tty: true
+    volumes:
+      - ".:/webapp"
+
+volumes:
+  postgres-data:
+  redis-data:
+
